@@ -1,5 +1,4 @@
 import './config/env'
-import HarddiskRepository from './repositories/HarddiskRepository'
 
 import express from 'express'
 import socketIO from 'socket.io'
@@ -7,6 +6,8 @@ import cors from 'cors'
 
 import http from 'http'
 import fs from 'fs'
+
+import HarddiskRepository from './repositories/HarddiskRepository'
 
 const app = express()
 
@@ -34,18 +35,27 @@ const io = new socketIO.Server(webServer, {
   }
 })
 
-webServer.listen(3000, () => {
-  console.log('⚡️[server] server on')
-})
 
 io.on('connection', (socket) => {
-  const fileName = socket.handshake.query.fileName as string
+  const fileName = socket.handshake.query.fileName;
 
   const writeStream = fs.createWriteStream(`upload/${fileName}`)
 
   socket.on("upload", (data: Buffer) => {
-    writeStream.write(data)
-
-    socket.on('end', () => writeStream.end())
+    writeStream.write(data, () => {
+      socket.emit('bytesWritten', writeStream.bytesWritten)
+    });
   })
+
+  socket.on("finally", () => {
+    writeStream.on('close', () => {
+      socket.disconnect();
+    })
+
+    writeStream.close();
+  })
+})
+
+webServer.listen(3000, () => {
+  console.log('⚡️[server] server on')
 })
