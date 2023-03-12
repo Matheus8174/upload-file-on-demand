@@ -5,16 +5,15 @@ type Callback<T> = (param: T) => void;
 type UploadFileProps = {
   file: File,
   errHandler: Callback<void>,
-  successHandler: Callback<void>,
-  emitToServer: Callback<any>
+  emitToServer: (ev: string, chunk?: any) => void
 }
 
 class Service {
   async uploadFile(dependencies: UploadFileProps) {
     const writableStream = new WritableStream({
       write(chunk) {
-        dependencies.emitToServer(chunk)
-      }
+        dependencies.emitToServer('upload', chunk)
+      },
     })
 
     try {
@@ -22,7 +21,7 @@ class Service {
         .stream()
         .pipeTo(writableStream)
 
-      dependencies.successHandler()
+      dependencies.emitToServer('finally')
     } catch {
       dependencies.errHandler()
     }
