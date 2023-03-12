@@ -13,8 +13,14 @@ class Repository {
     })
   }
 
-  public emitToServer(data: any) {
-    this.socket.emit('upload', data)
+  public emitToServer(ev: string, data?: any) {
+    this.socket.emit(ev, data)
+  }
+
+  public listemFromServer(callback: (p: number) => void) {
+    this.socket.on('bytesWritten', (bytesWritten: number) =>
+      callback(bytesWritten)
+    )
   }
 
   public disconnect() {
