@@ -1,4 +1,11 @@
+import Controller from "./controller"
 import IFilesInfo from "./dtos/IFilesInfo"
+import Repository from "./repository"
+
+type UploadProgressBarDependences = {
+  listemFromServer: Repository['listemFromServer']
+  updateUserFiles: Controller['updateUserFiles']
+}
 
 class View {
   private readonly fileSize = document.querySelector('#file-size') as HTMLOutputElement
@@ -6,23 +13,29 @@ class View {
   private readonly progressBar = document.querySelector('div.progress-bar') as HTMLDivElement
   private readonly feedback = document.querySelector('#feedback') as HTMLOutputElement
   private readonly fileListTitle = document.querySelector('h3') as HTMLHeadElement
+  private percentLoaded: number = 0
 
   init(callback: () => Promise<void>) {
-    this.file.addEventListener('change', () => callback())
+    this.file.addEventListener('change', () => {
+      callback()
+
+      this.percentLoaded = 0
+    })
   }
 
-  uploadProgressBar(file: File) {
-    const reader = new FileReader()
+  uploadProgressBar(total: number, dependences: UploadProgressBarDependences) {
+    function upload(this: View, bytesFromServer: number) {
+      this.percentLoaded = Math.round((bytesFromServer / total) * 100);
 
-    reader.readAsDataURL(file)
+      this.progressBar.style.width = `${this.percentLoaded}%`;
 
-    reader.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const percentComplete =
-          Math.round((event.loaded / event.total) * 100);
-        this.progressBar.style.width = `${percentComplete}%`;
+      if(this.percentLoaded === 100) {
+        this.updateFeedbackOnSuccess(),
+        dependences.updateUserFiles()
       }
-    })
+    }
+
+    dependences.listemFromServer(upload.bind(this))
   }
 
   updateFileSize(size: string): void {
@@ -87,7 +100,7 @@ class View {
             <h5 class="mb-1">${props.name}</h5>
             <small class="text-muted">${this.formatDate(props.updatedAt)}</small>
           </div>
-          <p class="mb-1 my-1">Video</p>
+          <p class="mb-1 my-1">${'File'}</p>
           <small class="text-muted">${this.formatBytes(props.size)}</small>
         </div>
       `
