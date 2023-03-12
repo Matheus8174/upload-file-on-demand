@@ -18,7 +18,13 @@ class Controller {
 
     this.repository.createConnection(file.name)
 
-    this.view.uploadProgressBar(file)
+    this.view.uploadProgressBar(
+      file.size,
+      {
+        listemFromServer: this.repository.listemFromServer.bind(this.repository),
+        updateUserFiles: this.updateUserFiles.bind(this)
+      }
+    )
 
     const bytes = this.view.formatBytes(file.size)
 
@@ -29,13 +35,8 @@ class Controller {
     await this.service.uploadFile({
       file,
       emitToServer: this.repository.emitToServer.bind(this.repository),
-      successHandler: this.view.updateFeedbackOnSuccess.bind(this.view),
       errHandler: this.view.updateFeedbackOnError.bind(this.view)
     })
-
-    this.repository.disconnect()
-
-    await this.updateUserFiles()
   }
 
   private async updateUserFiles() {
