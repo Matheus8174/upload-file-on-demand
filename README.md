@@ -1,5 +1,15 @@
-## Flow
+# Upload files on demand
 
-- get file from html
-- create socket connection
-- then upload it to the server
+![project client snapshoot](/snapshoot.png)
+
+## server
+- express
+- socket.io
+- dotenv
+
+## client
+- vanilla.js
+- vite
+- bootstrap
+- socket.io-client
+
