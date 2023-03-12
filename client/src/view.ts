@@ -90,8 +90,8 @@ class View {
     document.querySelectorAll('.list-group-item').forEach((e) => e.remove())
 
     this.fileListTitle.innerText = props.length <= 0
-      ? 'Nenhum arquivo enviado para a nuvem'
-      : 'Arquivos na nuvem'
+      ? 'There are no files yet'
+      : 'Files in the server'
 
     const createListItem = (props: IFilesInfo) => {
       const listItem = `
